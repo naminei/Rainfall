@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		fwrite("No !", 1, 5, stderr);
+		fwrite("No !\n", 1, 5, stderr);
 	}
 	return (0);
 }

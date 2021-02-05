@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 char *c;
 
 void	m(void)
 {
-    printf("%s - %d\n", c, time(NULL));
+    printf("%s - %d\n", c, (int)time(NULL));
     return ;
 }
 

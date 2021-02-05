@@ -2,24 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-int m;
-
-void    p(char *str)
+void    o()
 {
-    printf(str);
-    return;
+    system("/bin/sh");
+    exit(1);
 }
 
 void    n()
 {
     char    schar[520];
     fgets(schar,512,stdin);
-    p(schar);
-    if (m == 16930116)
-    {
-        system("/bin/cat /home/user/level5/.pass");
-    }
-    return ;
+    printf(schar);
+    exit(1);
 }
 
 int     main(int ac, char **av)

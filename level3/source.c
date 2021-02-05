@@ -3,7 +3,7 @@
 #include <string.h>
 
 
-int m = 0;
+int m;
 
 void    v()
 {

@@ -53,7 +53,7 @@ Dump of assembler code for function main:
    0x0804861a <+182>:   mov    %edx,%edi
    0x0804861c <+184>:   repnz scas %es:(%edi),%al
    0x0804861e <+186>:   mov    %ecx,%eax
-   0x08048620 <+188>:   not    %eax                     inverse les bits du registre
+   0x08048620 <+188>:   not    %eax                     reverse bits of register
    0x08048622 <+190>:   sub    $0x1,%eax
    0x08048625 <+193>:   cmp    $0x1e,%eax               30
    0x08048628 <+196>:   ja     0x8048642 <main+222>
@@ -144,22 +144,25 @@ Dump of assembler code for function main:
    0x08048738 <+468>:   ret    
 End of assembler dump.
 
-En lançant le programme sans arguments, le programme nous affiche la valeur des adresses de auth et de service qui sont tous les deux nuls
-Si on envoie rien alors on continue à afficher les valeurs des adresses de auth et service
-Sinon, on check ce qu'on écrit en boucle:
-- si on a écrit "auth ", on le malloc et si la chaine de caractère passée apres "auth " fait moins de 25, alors
-on copie la chaine dans auth.
-- si on écrit "reset", on free auth
-- si on écrit "service", on crée une string dans la variable service qu'on malloc avec strdup
-- si on écrit "login"
-      - si il y a quelque chose à 32 après auth, alors il y a un appel system à /bin/sh
-      - sinon, on écrit: Password:
 
-Après avoir lancé le programme, il faut donc:
-- écrire "auth "
-- écrire "service"
-- avoir malloc assez loin en mémoire pour qu'il y ait quelque chose 32 après la variable auth
-- si c'est le cas, alors on fait un appel system et on peut ensuite ouvrir un shell
+When we launch this programm without args, programm display auth adress value et service adress value wich is both null. 
+
+If we don't do nothing so it still dipslay each both value both null
+
+BUT
+Else, we got a check of what we write:
+- If we write "auth", malloc is triggered and if string we give after "auth" word lenght is < 25 so it copy sting in auth adress.
+- If we write "reset", it free auth
+- If we write "service", it load a string in service variable and it's malloc with strdup
+- If we write "login":
+    - If there is something with 32th position avec auth; so there is a system call to /bin/sh
+    - Else, it's juste write "Password:"
+
+We need to launch programme: 
+- write "auth "
+- write "service"
+- then get enought higher malloc in order to have something 32 after auth variable.
+- If it's ok we got our shell 
 
 -->
 auth 

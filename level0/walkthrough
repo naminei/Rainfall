@@ -1,4 +1,4 @@
-En ce connectant a level0 on observe un executable nomme level0
+There a programme wich named level0
 
 level0@RainFall:~$ ls -la
 total 737
@@ -8,6 +8,8 @@ dr-x--x--x  1 root   root      340 Sep 23  2015 ..
 -rw-r--r--  1 level0 level0   3530 Sep 23  2015 .bashrc
 -rwsr-x---+ 1 level1 users  747441 Mar  6  2016 level0
 -rw-r--r--  1 level0 level0    675 Apr  3  2012 .profile
+
+So let's try some usualy dumb stuff
 level0@RainFall:~$ ./level0
 Segmentation fault (core dumped)
 level0@RainFall:~$ ./level0 coucou
@@ -15,7 +17,7 @@ No !
 level0@RainFall:~$ ./level0 .profile
 No !
 
-On va donc lancer gdb afin de comprendre un peu mieux le programme
+We laucch gdb 
 
 level0@RainFall:~$ gdb level0
 ...
@@ -23,14 +25,18 @@ level0@RainFall:~$ gdb level0
 
 On observe plusieurs choses :
 0x08048ed4 <+20>:    call   0x8049710 <atoi>
-0x08048ed9 <+25>:    cmp    $0x1a7,%eax
+0x08048ed9 <+25>:    cmp    $0x1a7,%eax             <---- this is a comparaison
 0x08048ede <+30>:    jne    0x8048f58 <main+152>
 
-Un appel a la fonction atoi suivi d'une comparaison avec 0x1a7 qui equivaut a 423,
-le tout terminer par  jne 0x8048f58 <main+152> qui est un jump plus loin dans le code
-si notre comparaison est differente. Ici le jump envoie au fwrite qui nous ecrit
-les "No !" avant de quitter le programme.
-On va simplement lancer notre programme avec 423 en argument et un prompt va apparaitre.
+there is a call to atoi function and if comparaison is not equal a jump to fwrite wich write 'No!'
+
+So let's try to get get same value in order to pass this condition. 
+
+(gdb) p 0x1a7
+$2 = 423
+
+Condition is ok this program will call system ---> we get a prompt as below
+
 level0@RainFall:~$ ./level0 423
 $ cd /home/user/level1
 $ cat .pass

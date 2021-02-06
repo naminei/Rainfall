@@ -34,16 +34,17 @@ Dump of assembler code for function main:
    0x080484d3 <+87>:    ret    
 End of assembler dump.
 
-m est la fonction qui affiche "Nope"
-Il y a l'appel system dans n, fonction qui n'est pas appelée
+m is the function displaying "Nope"
+There a system call in n. n is a function that isn't called
 
-On pourrait essayer d'appeler n à la place de m
+We could try calling n instead of m
+
 <m> 0x08048468
 <n> 0x08048454
 
-Or en +84, on a un pointeur sur fonction qui pointe vers m, adresse contenue dans notre 2e malloc de 4
+In +84, there's a function pointer that points on m which adresse is contained in our 2nd malloc of 4
 
-Grâce à Wiremask, on trouve que l'offset est de 72: 64 + 8 de boundary tag
+Thanks to Wiremask, we can find the offset of 72: 64 + 8 de boundary tag
 Donc après avoir écrit l'entièreté des 72, on écrira dans les 4 du 2e malloc.
 On peut ainsi écraser l'adresse de m par l'adresse de n. En +84, on fera alors appel à la fonction n.
 

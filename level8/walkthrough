@@ -144,8 +144,8 @@ Dump of assembler code for function main:
    0x08048738 <+468>:   ret    
 End of assembler dump.
 
-En lançant le programme sans arguments, le programme nous affiche la valeur de auth et de service qui sont tous les deux nuls
-Si on envoie rien alors on continue à afficher les valeurs de auth et service
+En lançant le programme sans arguments, le programme nous affiche la valeur des adresses de auth et de service qui sont tous les deux nuls
+Si on envoie rien alors on continue à afficher les valeurs des adresses de auth et service
 Sinon, on check ce qu'on écrit en boucle:
 - si on a écrit "auth ", on le malloc et si la chaine de caractère passée apres "auth " fait moins de 25, alors
 on copie la chaine dans auth.
@@ -159,7 +159,7 @@ Après avoir lancé le programme, il faut donc:
 - écrire "auth "
 - écrire "service"
 - avoir malloc assez loin en mémoire pour qu'il y ait quelque chose 32 après la variable auth
-- si c'est le cas, alors on fait un appel system et on ouvre un shell
+- si c'est le cas, alors on fait un appel system et on peut ensuite ouvrir un shell
 
 -->
 auth 

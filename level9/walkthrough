@@ -146,7 +146,7 @@ So let's give an adress wich point on our start of payload:
 Oh we juste see before that's here it is : 0x804a00c 
 
 Let's choose an adresse in Nope zone, now : 0x804a010
-
+Because : "(4 bytes after the original EIP address) so it will be 0xbffff77c + 4 , google can simply give you the answer :D" (https://0xrick.github.io/binary-exploitation/bof5/)
 Address of Nope zone + Nope code + Shellcode   
        4                 ??         45      
 
